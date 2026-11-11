@@ -1,23 +1,21 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CreateAnalysisRequest, QuestionRequest, type AnswerResponse } from "@codebase-intel/core";
-import { askQuestion, createAnalysis, getAnalysis } from "./api";
-import { AnswerCard, StatusCard } from "./components";
+import { CreateAnalysisRequest } from "@codebase-intel/core";
+import { createAnalysis, getAnalysis } from "./api";
+import { StatusCard } from "./components";
+import { Workspace } from "./Workspace";
 
 const TERMINAL = new Set(["ready", "partially_ready", "failed"]);
 
 export default function App() {
   const [url, setUrl] = useState("");
   const [analysisId, setAnalysisId] = useState<string | null>(null);
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<AnswerResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const create = useMutation({
     mutationFn: createAnalysis,
     onSuccess: (data) => {
       setAnalysisId(data.analysis_id);
-      setAnswer(null);
       setError(null);
     },
     onError: (e: Error) => setError(e.message),
@@ -30,15 +28,6 @@ export default function App() {
     refetchInterval: (q) => (q.state.data && TERMINAL.has(q.state.data.status) ? false : 2000),
   });
 
-  const ask = useMutation({
-    mutationFn: (q: string) => askQuestion(analysisId!, q),
-    onSuccess: (data) => {
-      setAnswer(data);
-      setError(null);
-    },
-    onError: (e: Error) => setError(e.message),
-  });
-
   function submitUrl(e: React.FormEvent) {
     e.preventDefault();
     const parsed = CreateAnalysisRequest.safeParse({ repo_url: url.trim() });
@@ -47,16 +36,6 @@ export default function App() {
       return;
     }
     create.mutate(parsed.data.repo_url);
-  }
-
-  function submitQuestion(e: React.FormEvent) {
-    e.preventDefault();
-    const parsed = QuestionRequest.safeParse({ question });
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Invalid question");
-      return;
-    }
-    ask.mutate(parsed.data.question);
   }
 
   const status = analysis.data?.status;
@@ -92,26 +71,7 @@ export default function App() {
 
       {analysis.data && <StatusCard analysis={analysis.data} />}
 
-      {isReady && (
-        <section className="mt-6">
-          <form onSubmit={submitQuestion} className="flex gap-2">
-            <input
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Where is routing handled?"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-            <button
-              type="submit"
-              disabled={ask.isPending}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {ask.isPending ? "Thinking…" : "Ask"}
-            </button>
-          </form>
-          {answer && <AnswerCard answer={answer} />}
-        </section>
-      )}
+      {analysisId && isReady && <Workspace analysisId={analysisId} />}
     </div>
   );
 }

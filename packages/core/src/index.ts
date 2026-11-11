@@ -38,6 +38,10 @@ export const Citation = z
   })
   .refine((c) => c.end_line >= c.start_line, { message: "end_line must be >= start_line" });
 
+export const InvestigationRequest = z.object({
+  stack_trace: z.string().trim().min(10, "Paste a stack trace").max(20000, "Max 20,000 characters"),
+});
+
 export const AnalysisResponse = z.object({
   id: z.string(),
   repository: z.string(),
@@ -71,6 +75,7 @@ export const AnswerResponse = z.object({
 });
 
 export type CreateAnalysisRequest = z.infer<typeof CreateAnalysisRequest>;
+export type InvestigationRequest = z.infer<typeof InvestigationRequest>;
 export type QuestionRequest = z.infer<typeof QuestionRequest>;
 export type AnalysisStatus = z.infer<typeof AnalysisStatus>;
 export type Citation = z.infer<typeof Citation>;

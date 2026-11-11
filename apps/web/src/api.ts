@@ -36,3 +36,24 @@ export async function askQuestion(id: string, question: string): Promise<AnswerR
   if (!res.ok) throw new Error(await errorMessage(res));
   return res.json();
 }
+
+export type InvestigationResponse = AnswerResponse & {
+  parsed_frames: number;
+  matched_frames: number;
+};
+
+export async function investigate(id: string, stackTrace: string): Promise<InvestigationResponse> {
+  const res = await fetch(`${API}/api/analyses/${id}/investigations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ stack_trace: stackTrace }),
+  });
+  if (!res.ok) throw new Error(await errorMessage(res));
+  return res.json();
+}
+
+export async function downloadBriefing(id: string): Promise<Blob> {
+  const res = await fetch(`${API}/api/analyses/${id}/exports`, { method: "POST" });
+  if (!res.ok) throw new Error(await errorMessage(res));
+  return res.blob();
+}

@@ -24,8 +24,9 @@ QUERIES = {
     "python": """
 (function_definition name: (identifier) @name) @symbol.function
 (class_definition name: (identifier) @name) @symbol.class
-(import_statement) @import
-(import_from_statement) @import
+(import_statement name: (dotted_name) @import.path) @import
+(import_from_statement module_name: (dotted_name) @import.path) @import
+(import_from_statement module_name: (relative_import) @import.path) @import
 """,
     "go": """
 (function_declaration name: (identifier) @name) @symbol.function

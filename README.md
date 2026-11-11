@@ -40,14 +40,27 @@ supabase/        SQL migrations (schema + hybrid_search function)
 docs/            Handoff, architecture design, evaluation bank
 ```
 
-## API (vertical slice)
+## API
 
 ```
-POST /api/analyses                 { "repo_url": "https://github.com/owner/repo" }
-GET  /api/analyses/{id}            status + counts (poll while running)
-POST /api/analyses/{id}/questions  { "question": "..." }  → answer + validated citations
+POST /api/analyses                    { "repo_url": "https://github.com/owner/repo" }
+GET  /api/analyses/{id}               status + counts (poll while running)
+POST /api/analyses/{id}/questions     { "question": "..." }        → answer + validated citations
+POST /api/analyses/{id}/investigations { "stack_trace": "..." }    → likely cause + citations + frame matches
+POST /api/analyses/{id}/exports       → zip download (BRIEFING.md + SKILL.md)
 GET  /health
 ```
+
+## Evaluation harness
+
+```bash
+# 1) index the three benchmark repos and copy their analysis ids into docs/Evaluation_Bank.json
+# 2) run the 48-question bank
+cd apps/api
+go run ./cmd/eval -bank ../../docs/Evaluation_Bank.json -api http://localhost:8081 -out ../../docs/EVALUATION_REPORT.md
+```
+
+The report includes per-category summaries (counts, avg citations, avg latency) and a per-question table for human grading against `docs/Evaluation_Bank_v1.0.md`.
 
 ## Design guardrails (from the approved design)
 

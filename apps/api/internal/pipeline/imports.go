@@ -70,6 +70,12 @@ func resolveSpecifier(raw, fromPath string, byPath map[string]string, paths []st
 				return cand, "internal"
 			}
 		}
+		// src-layout repositories: match the module suffix (e.g. flask/helpers.py)
+		for _, p := range paths {
+			if strings.HasSuffix(p, "/"+mod+".py") || strings.HasSuffix(p, "/"+mod+"/__init__.py") {
+				return p, "internal"
+			}
+		}
 	}
 
 	// Go package path: match by trailing directory name

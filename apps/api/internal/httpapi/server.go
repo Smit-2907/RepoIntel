@@ -30,6 +30,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /api/analyses", s.createAnalysis)
 	mux.HandleFunc("GET /api/analyses/{id}", s.getAnalysis)
 	mux.HandleFunc("POST /api/analyses/{id}/questions", s.askQuestion)
+	mux.HandleFunc("POST /api/analyses/{id}/investigations", s.investigate)
+	mux.HandleFunc("POST /api/analyses/{id}/exports", s.exportPack)
 	return cors(mux)
 }
 
