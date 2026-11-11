@@ -1,0 +1,11 @@
+{
+  "name": "codebase-intel",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "typecheck": "pnpm --filter web typecheck && pnpm --filter @codebase-intel/core typecheck"
+  },
+  "packageManager": "pnpm@11.18.0"
+}

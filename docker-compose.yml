@@ -1,0 +1,66 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: codebaseintel
+    ports:
+      - "54322:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d codebaseintel"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  parser:
+    build: ./apps/parser
+    environment:
+      PARSER_PORT: "8090"
+    ports:
+      - "8090:8090"
+
+  api:
+    build: ./apps/api
+    command: ["/app/api"]
+    environment: &app_env
+      DATABASE_URL: postgres://postgres:postgres@db:5432/codebaseintel?sslmode=disable
+      PARSER_URL: http://parser:8090
+      API_PORT: "8080"
+      GITHUB_PAT: ${GITHUB_PAT:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-001}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1536}
+      MAX_REPO_KB: ${MAX_REPO_KB:-51200}
+      MAX_FILES: ${MAX_FILES:-3000}
+      MAX_FILE_BYTES: ${MAX_FILE_BYTES:-524288}
+      MAX_CHUNKS: ${MAX_CHUNKS:-15000}
+    ports:
+      - "8081:8080"
+    volumes:
+      - app_data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      parser:
+        condition: service_started
+
+  worker:
+    build: ./apps/api
+    command: ["/app/worker"]
+    environment: *app_env
+    volumes:
+      - app_data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      parser:
+        condition: service_started
+
+volumes:
+  db_data:
+  app_data:

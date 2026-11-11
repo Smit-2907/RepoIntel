@@ -1,0 +1,10 @@
+packages:
+  - "apps/web"
+  - "packages/core"
+
+# pnpm 11+ blocks dependency build scripts by default and uses `allowBuilds`.
+# Vite needs esbuild's install step; Tailwind v4 uses a native oxide binary.
+allowBuilds:
+  esbuild: true
+  "@tailwindcss/oxide": true
+
